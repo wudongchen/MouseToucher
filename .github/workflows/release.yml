@@ -5,6 +5,12 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Tag to publish, for example v1.0
+        required: true
+        default: v1.0
+        type: string
 
 permissions:
   contents: write
@@ -13,10 +19,14 @@ jobs:
   release:
     name: Build universal macOS app
     runs-on: macos-14
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
 
       - name: Build app
         run: ./build.sh
@@ -25,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag_version="${GITHUB_REF_NAME#v}"
+          tag_version="${RELEASE_TAG#v}"
           plist_version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' build/MouseToucher.app/Contents/Info.plist)
 
           if [[ "$tag_version" != "$plist_version" ]]; then
@@ -41,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          archive="dist/MouseToucher-${GITHUB_REF_NAME#v}.zip"
+          archive="dist/MouseToucher-${RELEASE_TAG#v}.zip"
           ditto -c -k --sequesterRsrc --keepParent build/MouseToucher.app "$archive"
           shasum -a 256 "$archive" > "${archive}.sha256"
           unzip -t "$archive"
@@ -50,8 +60,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            "dist/MouseToucher-${GITHUB_REF_NAME#v}.zip" \
-            "dist/MouseToucher-${GITHUB_REF_NAME#v}.zip.sha256" \
-            --title "MouseToucher ${GITHUB_REF_NAME#v}" \
+          gh release create "$RELEASE_TAG" \
+            "dist/MouseToucher-${RELEASE_TAG#v}.zip" \
+            "dist/MouseToucher-${RELEASE_TAG#v}.zip.sha256" \
+            --title "MouseToucher ${RELEASE_TAG#v}" \
             --generate-notes
