@@ -97,6 +97,17 @@ Mouse Toucher 是一个原生 Swift 小程序，通过苹果私有的 `Multitouc
 
 欢迎提交问题、设备兼容性反馈、文档改进和 Pull Request。反馈输入问题时，请附上 macOS 版本、鼠标型号和简短的复现步骤。
 
+### 发布版本（维护者）
+
+先在 `Info.plist` 中更新 `CFBundleShortVersionString`，提交修改，然后创建并推送对应的版本标签：
+
+```bash
+git tag -a v1.0 -m "MouseToucher 1.0"
+git push origin main --follow-tags
+```
+
+GitHub Actions 会在标签触发后自动构建通用版应用，生成 `MouseToucher-<版本>.zip` 和 SHA-256 校验文件，并将它们发布到 GitHub Release。标签版本必须与 `Info.plist` 中的版本一致。
+
 ## 许可证
 
 本项目采用 [MIT License](LICENSE) 开源。

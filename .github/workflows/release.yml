@@ -1,0 +1,56 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build universal macOS app
+    runs-on: macos-14
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build app
+        run: ./build.sh
+
+      - name: Verify version and signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          plist_version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' build/MouseToucher.app/Contents/Info.plist)
+
+          if [[ "$tag_version" != "$plist_version" ]]; then
+            echo "Tag version ($tag_version) does not match Info.plist ($plist_version)."
+            exit 1
+          fi
+
+          codesign --verify --deep --strict build/MouseToucher.app
+          file build/MouseToucher.app/Contents/MacOS/MouseToucher
+
+      - name: Package release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          archive="dist/MouseToucher-${GITHUB_REF_NAME#v}.zip"
+          ditto -c -k --sequesterRsrc --keepParent build/MouseToucher.app "$archive"
+          shasum -a 256 "$archive" > "${archive}.sha256"
+          unzip -t "$archive"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/MouseToucher-${GITHUB_REF_NAME#v}.zip" \
+            "dist/MouseToucher-${GITHUB_REF_NAME#v}.zip.sha256" \
+            --title "MouseToucher ${GITHUB_REF_NAME#v}" \
+            --generate-notes

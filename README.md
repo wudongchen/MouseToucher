@@ -97,6 +97,17 @@ The app is designed for Magic Mouse hardware. It filters out the built-in and ex
 
 Bug reports, device-compatibility notes, documentation improvements, and pull requests are welcome. Please include your macOS version, mouse model, and a short reproduction description for input-related issues.
 
+### Publishing a release (maintainers)
+
+Update `CFBundleShortVersionString` in `Info.plist`, commit the change, then create and push a matching tag:
+
+```bash
+git tag -a v1.0 -m "MouseToucher 1.0"
+git push origin main --follow-tags
+```
+
+The GitHub Actions workflow runs on the tag, builds the universal app, packages `MouseToucher-<version>.zip`, generates a SHA-256 checksum, and publishes both files to a GitHub Release. The tag version must match the version in `Info.plist`.
+
 ## License
 
 Released under the [MIT License](LICENSE).
