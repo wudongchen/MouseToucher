@@ -2,11 +2,9 @@
 
 <p align="right"><a href="README.zh-CN.md">简体中文</a> · English · <a href="https://github.com/wudongchen/MouseToucher">GitHub</a></p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="mousetoucher-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="mousetoucher-light.png">
-  <img alt="Mouse Toucher logo" src="mousetoucher-light.png">
-</picture>
+<p align="center">
+  <img src="Assets/MouseToucherIcon.png" alt="Mouse Toucher icon" width="180">
+</p>
 
 **Tap-to-click for Apple Magic Mouse.**
 
